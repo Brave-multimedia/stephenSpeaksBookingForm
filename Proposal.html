@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Right On Time — Stephen Speaks | Booking Inquiry</title>
+
+<style>
+:root {
+  --navy: #08152f;
+  --navy2: #10234a;
+  --gold: #c7a35a;
+  --white: #ffffff;
+  --bg: #f4f5f7;
+  --text: #18233a;
+  --muted: #667085;
+  --border: #d9dee8;
+  --danger: #b42318;
+  --available-bg: #eef8f2;
+  --available-text: #087443;
+  --blocked-bg: #fcebea;
+  --blocked-text: #b42318;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text);
+}
+
+.header {
+  background-image: linear-gradient(rgba(8, 21, 47, .72), rgba(8, 21, 47, .82)), url("images/ssbg.png");
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  color: white;
+  text-align: left;
+  padding: 85px 20px 75px;
+}
+
+.brand {
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: bold;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 40px;
+  letter-spacing: 1px;
+}
+
+.header h2 {
+  margin: 8px 0 0;
+  font-size: 21px;
+  font-weight: normal;
+  color: #dce2ee;
+}
+
+.header h3 {
+  margin: 8px 0 0;
+  font-size: 18px;
+  font-weight: normal;
+  color: #fdb040;
+
+}
+
+.container {
+  width: min(900px, calc(100% - 32px));
+  margin: 35px auto 70px;
+}
+
+.section {
+  background: var(--white);
+  padding: 38px;
+  margin-bottom: 24px;
+  border-radius: 14px;
+  box-shadow: 0 5px 20px rgba(8, 21, 47, .06);
+}
+
+.section-number {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+
+.section h2 {
+  margin: 0 0 10px;
+  color: var(--navy);
+  font-size: 25px;
+}
+
+.description {
+  color: var(--muted);
+  margin-bottom: 25px;
+}
+
+.nda {
+  background: #f8f9fb;
+  border-left: 4px solid var(--gold);
+  padding: 22px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+}
+
+.nda ol {
+  padding-left: 22px;
+}
+
+.nda li {
+  margin-bottom: 10px;
+}
+
+.field {
+  margin-bottom: 21px;
+}
+
+label {
+  display: block;
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 7px;
+}
+
+.required {
+  color: #b42318;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="url"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 12px 13px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text);
+  background: white;
+}
+
+textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(199,163,90,.12);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-weight: normal;
+  cursor: pointer;
+}
+
+.option input {
+  width: auto;
+}
+
+/* =========================
+   AVAILABILITY CALENDAR
+========================= */
+
+.availability-box {
+  margin: 30px 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.availability-header {
+  background: var(--navy);
+  color: white;
+  padding: 20px 22px;
+}
+
+.availability-header h3 {
+  margin: 0 0 5px;
+  font-size: 19px;
+}
+
+.availability-header p {
+  margin: 0;
+  font-size: 13px;
+  color: #cbd3e1;
+}
+
+.calendar {
+  padding: 20px;
+}
+
+.calendar-month {
+  text-align: center;
+  font-weight: bold;
+  color: var(--navy);
+  font-size: 17px;
+  margin-bottom: 15px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.day-name {
+  text-align: center;
+  font-size: 11px;
+  font-weight: bold;
+  color: var(--muted);
+  padding: 7px 2px;
+}
+
+.calendar-day {
+  min-height: 72px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: #fff;
+  position: relative;
+}
+
+.calendar-day.empty {
+  border: none;
+  background: transparent;
+}
+
+.calendar-day .date {
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--navy);
+}
+
+.calendar-day .status {
+  display: block;
+  margin-top: 6px;
+  font-size: 10px;
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+.calendar-day.available {
+  background: var(--available-bg);
+  border-color: #b7dfc7;
+}
+
+.calendar-day.available .status {
+  color: var(--available-text);
+}
+
+.calendar-day.blocked {
+  background: var(--blocked-bg);
+  border-color: #efb8b3;
+}
+
+.calendar-day.blocked .status {
+  color: var(--blocked-text);
+}
+
+.calendar-day.travel {
+  background: #f4f0e7;
+  border-color: #dfcfaa;
+}
+
+.calendar-day.travel .status {
+  color: #806a32;
+}
+
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 18px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+
+.legend-available {
+  background: #73b88c;
+}
+
+.legend-blocked {
+  background: #d97972;
+}
+
+.legend-travel {
+  background: #c8b579;
+}
+
+.availability-note {
+  margin-top: 15px;
+  padding: 14px 16px;
+  background: #f8f9fb;
+  border-radius: 7px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* =========================
+   CALENDAR BUTTON
+========================= */
+
+.calendar-booking {
+  background: var(--navy);
+  color: white;
+  padding: 28px;
+  border-radius: 12px;
+  text-align: center;
+  margin: 30px 0;
+}
+
+.calendar-booking h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.calendar-booking p {
+  color: #d5dcea;
+  font-size: 14px;
+}
+
+.calendar-button {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 13px 24px;
+  background: var(--gold);
+  color: var(--navy);
+  text-decoration: none;
+  border-radius: 7px;
+  font-weight: bold;
+}
+
+.notice {
+  padding: 16px;
+  background: #fff8e8;
+  border: 1px solid #ead6a5;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #5d4b20;
+  margin-bottom: 25px;
+}
+
+.submit-area {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.submit-button {
+  width: 100%;
+  max-width: 400px;
+  padding: 16px 25px;
+  background: var(--navy);
+  color: white;
+  border: 0;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.submit-button:hover {
+  background: var(--navy2);
+}
+
+.footer {
+  text-align: center;
+  padding: 30px 20px 50px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@media(max-width: 650px) {
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section {
+    padding: 25px 20px;
+  }
+
+  .header h1 {
+    font-size: 30px;
+  }
+
+  .calendar {
+    padding: 12px;
+  }
+
+  .calendar-grid {
+    gap: 3px;
+  }
+
+  .calendar-day {
+    min-height: 58px;
+    padding: 5px;
+  }
+
+  .calendar-day .status {
+    font-size: 8px;
+  }
+
+  .day-name {
+    font-size: 9px;
+  }
+}
+
+</style>
+</head>
+
+
+<body>
+
+<header class="header">
+
+  <div class="brand">
+    Brave Multimedia, Inc.
+  </div>
+
+  <h1>RIGHT ON TIME</h1>
+
+  <h2>
+    Stephen Speaks
+  </h2>
+
+  <h3>
+    <em>The journey continues 25years after ....</em>
+  </h3>
+
+</header>
+
+
+<div class="container">
+
+<form
+  action="https://formsubmit.co/connect@bravemultimedia.com"
+  method="POST"
+  enctype="multipart/form-data"
+>
+
+<input type="hidden" name="_subject" value="New Right On Time — Stephen Speaks Booking Inquiry">
+<input type="hidden" name="_template" value="table">
+<input type="hidden" name="_captcha" value="false">
+
+
+<!-- ========================= -->
+<!-- 01 — NDA -->
+<!-- ========================= -->
+
+<section class="section">
+
+  <div class="section-number">
+    01 — Confidentiality
+  </div>
+
+  <h2>Confidentiality &amp; NDA</h2>
+
+  <p class="description">
+    Please read the following confidentiality notice before proceeding
+    with your booking inquiry.
+  </p>
+
+
+  <div class="nda">
+
+    <p>
+      Thank you for your interest in booking
+      <strong>Stephen Speaks</strong>
+      through Brave Multimedia, Inc.
+    </p>
+
+    <p>
+      Information shared through this booking process, including artist
+      availability, proposed fees, commercial terms, show requirements,
+      and other booking-related information, is considered
+      <strong>confidential and proprietary to Brave Multimedia, Inc.</strong>
+    </p>
+
+    <ol>
+
+      <li>
+        You agree to treat all information provided through this booking
+        process as confidential.
+      </li>
+
+      <li>
+        You will not disclose, reproduce, forward, publish, or share
+        confidential booking information with any third party without
+        prior written authorization from Brave Multimedia, Inc.
+      </li>
+
+      <li>
+        Any quotation, fee indication, availability, proposal, or
+        preliminary arrangement is subject to confirmation and final
+        written approval by Brave Multimedia, Inc.
+      </li>
+
+      <li>
+        Submission of this form does not constitute a confirmed booking,
+        contract, or commitment by the Artist or Brave Multimedia, Inc.
+      </li>
+
+      <li>
+        Brave Multimedia, Inc. retains final approval over all commercial
+        and contractual arrangements relating to the engagement.
+      </li>
+
+    </ol>
+
+  </div>
+
+
+  <label class="option">
+
+    <input
+      type="checkbox"
+      name="nda_agreement"
+      value="Agreed"
+      required
+    >
+
+    I have read, understood, and agree to the confidentiality terms above.
+
+    <span class="required">*</span>
+
+  </label>
+
+</section>
+
+
+
+<!-- ========================= -->
+<!-- 02 — CONTACT -->
+<!-- ========================= -->
+
+<section class="section">
+
+  <div class="section-number">
+    02 — Contact Information
+  </div>
+
+  <h2>Contact Information</h2>
+
+  <p class="description">
+    Please provide the details of the person or organization making
+    this booking inquiry.
+  </p>
+
+
+  <div class="grid">
+
+    <div class="field">
+
+      <label>
+        Full Name <span class="required">*</span>
+      </label>
+
+      <input
+        type="text"
+        name="full_name"
+        required
+      >
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Position / Designation <span class="required">*</span>
+      </label>
+
+      <input
+        type="text"
+        name="position"
+        required
+      >
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Company / Organization <span class="required">*</span>
+      </label>
+
+      <input
+        type="text"
+        name="company"
+        required
+      >
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Country <span class="required">*</span>
+      </label>
+
+      <input
+        type="text"
+        name="country"
+        required
+      >
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        City <span class="required">*</span>
+      </label>
+
+      <input
+        type="text"
+        name="city"
+        required
+      >
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Mobile / WhatsApp Number <span class="required">*</span>
+      </label>
+
+      <input
+        type="tel"
+        name="phone"
+        required
+      >
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Email Address <span class="required">*</span>
+      </label>
+
+      <input
+        type="email"
+        name="email"
+        required
+      >
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Company Website
+      </label>
+
+      <input
+        type="url"
+        name="website"
+      >
+
+    </div>
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Company / Organization Type
+      <span class="required">*</span>
+    </label>
+
+    <div class="options">
+
+      <label class="option">
+        <input
+          type="radio"
+          name="organization_type"
+          value="Corporate"
+          required
+        >
+        Corporate
+      </label>
+
+      <label class="option">
+        <input
+          type="radio"
+          name="organization_type"
+          value="Event Organizer"
+        >
+        Event Organizer
+      </label>
+
+      <label class="option">
+        <input
+          type="radio"
+          name="organization_type"
+          value="Promoter"
+        >
+        Promoter
+      </label>
+
+      <label class="option">
+        <input
+          type="radio"
+          name="organization_type"
+          value="Production Company"
+        >
+        Production Company
+      </label>
+
+      <label class="option">
+        <input
+          type="radio"
+          name="organization_type"
+          value="Agency"
+        >
+        Agency
+      </label>
+
+      <label class="option">
+        <input
+          type="radio"
+          name="organization_type"
+          value="Other"
+        >
+        Other
+      </label>
+
+    </div>
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Preferred Method of Communication
+    </label>
+
+    <div class="options">
+
+      <label class="option">
+        <input
+          type="checkbox"
+          name="communication[]"
+          value="WhatsApp"
+        >
+        WhatsApp
+      </label>
+
+      <label class="option">
+        <input
+          type="checkbox"
+          name="communication[]"
+          value="Email"
+        >
+        Email
+      </label>
+
+      <label class="option">
+        <input
+          type="checkbox"
+          name="communication[]"
+          value="Phone Call"
+        >
+        Phone Call
+      </label>
+
+      <label class="option">
+        <input
+          type="checkbox"
+          name="communication[]"
+          value="Google Meet"
+        >
+        Google Meet
+      </label>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- ========================= -->
+<!-- 03 — EVENT & BOOKING -->
+<!-- ========================= -->
+
+<section class="section">
+
+  <div class="section-number">
+    03 — Event &amp; Booking Details
+  </div>
+
+  <h2>Event &amp; Booking Details</h2>
+
+  <p class="description">
+    Please provide the details of your proposed event and preferred
+    booking date.
+  </p>
+
+
+  <!-- AVAILABILITY CALENDAR -->
+
+  <div class="availability-box">
+
+    <div class="availability-header">
+
+      <h3>
+        Stephen Speaks — Availability Calendar
+      </h3>
+
+      <p>
+        November 12 – December 13, 2026
+      </p>
+
+    </div>
+
+
+    <div class="calendar">
+
+      <div class="calendar-month">
+        November 2026
+      </div>
+
+
+      <div class="calendar-grid">
+
+        <div class="day-name">SUN</div>
+        <div class="day-name">MON</div>
+        <div class="day-name">TUE</div>
+        <div class="day-name">WED</div>
+        <div class="day-name">THU</div>
+        <div class="day-name">FRI</div>
+        <div class="day-name">SAT</div>
+
+
+        <!-- Nov 1 -->
+        <div class="calendar-day">
+          <span class="date">1</span>
+        </div>
+
+        <div class="calendar-day">
+          <span class="date">2</span>
+        </div>
+
+        <div class="calendar-day">
+          <span class="date">3</span>
+        </div>
+
+        <div class="calendar-day">
+          <span class="date">4</span>
+        </div>
+
+        <div class="calendar-day">
+          <span class="date">5</span>
+        </div>
+
+        <div class="calendar-day">
+          <span class="date">6</span>
+        </div>
+
+        <div class="calendar-day">
+          <span class="date">7</span>
+        </div>
+
+
+        <div class="calendar-day">
+          <span class="date">8</span>
+        </div>
+
+        <div class="calendar-day">
+          <span class="date">9</span>
+        </div>
+
+        <div class="calendar-day">
+          <span class="date">10</span>
+        </div>
+
+        <div class="calendar-day">
+          <span class="date">11</span>
+        </div>
+
+
+        <!-- Nov 12 -->
+        <div class="calendar-day blocked">
+          <span class="date">12</span>
+          <span class="status">BLOCKED<br>MANILA</span>
+        </div>
+
+        <!-- Nov 13 -->
+        <div class="calendar-day blocked">
+          <span class="date">13</span>
+          <span class="status">BLOCKED<br>CORPORATE EVENT</span>
+        </div>
+
+        <!-- Nov 14 -->
+        <div class="calendar-day blocked">
+          <span class="date">14</span>
+          <span class="status">BLOCKED<br>PRIVATE EVENT</span>
+        </div>
+
+
+        <!-- Nov 15 -->
+        <div class="calendar-day blocked">
+          <span class="date">15</span>
+          <span class="status">BLOCKED<br>MANILA</span>
+        </div>
+
+        <!-- Nov 16 -->
+        <div class="calendar-day available">
+          <span class="date">16</span>
+          <span class="status">AVAILABLE<br>MANILA</span>
+        </div>
+
+        <!-- Nov 17 -->
+        <div class="calendar-day available">
+          <span class="date">17</span>
+          <span class="status">AVAILABLE<br>MANILA</span>
+        </div>
+
+        <!-- Nov 18 -->
+        <div class="calendar-day blocked">
+          <span class="date">18</span>
+          <span class="status">BLOCKED<br>MANILA</span>
+        </div>
+
+        <!-- Nov 19 -->
+        <div class="calendar-day blocked">
+          <span class="date">19</span>
+          <span class="status">BLOCKED<br>DUBAI</span>
+        </div>
+
+        <!-- Nov 20 -->
+        <div class="calendar-day blocked">
+          <span class="date">20</span>
+          <span class="status">BLOCKED<br>DUBAI</span>
+        </div>
+
+        <!-- Nov 21 -->
+        <div class="calendar-day blocked">
+          <span class="date">21</span>
+          <span class="status">BLOCKED<br>DUBAI</span>
+        </div>
+
+        <!-- Nov 22 -->
+        <div class="calendar-day blocked">
+          <span class="date">22</span>
+          <span class="status">BLOCKED<br>DUBAI</span>
+        </div>
+
+        
+        <!-- Nov 23 -->
+        <div class="calendar-day blocked">
+          <span class="date">23</span>
+          <span class="status">BLOCKED<br>DUBAI</span>
+        </div>
+
+        <!-- Nov 24 -->
+        <div class="calendar-day blocked">
+          <span class="date">24</span>
+          <span class="status">BLOCKED<br>DUBAI</span>
+        </div>
+
+        <!-- Nov 25 -->
+        <div class="calendar-day available">
+          <span class="date">25</span>
+          <span class="status">AVAILABLE<br>MANILA</span>
+        </div>
+
+        <!-- Nov 26 -->
+        <div class="calendar-day available">
+          <span class="date">26</span>
+          <span class="status">AVAILABLE<br>MANILA</span>
+        </div>
+
+        <!-- Nov 27 -->
+        <div class="calendar-day available">
+          <span class="date">27</span>
+          <span class="status">AVAILABLE<br>MANILA</span>
+        </div>
+
+        <!-- Nov 28 -->
+        <div class="calendar-day available">
+          <span class="date">28</span>
+          <span class="status">AVAILABLE<br>MANILA</span>
+        </div>
+
+        <!-- Nov 29 -->
+        <div class="calendar-day available">
+          <span class="date">29</span>
+          <span class="status">AVAILABLE<br>MANILA</span>
+        </div>
+
+        <!-- Nov 30 -->
+        <div class="calendar-day available">
+          <span class="date">30</span>
+          <span class="status">AVAILABLE<br>MANILA</span>
+        </div>
+
+      </div>
+
+
+      <div class="calendar-legend">
+
+        <div class="legend-item">
+          <span class="legend-dot legend-available"></span>
+          Available
+        </div>
+
+        <div class="legend-item">
+          <span class="legend-dot legend-blocked"></span>
+          Blocked
+        </div>
+
+      </div>
+
+
+      <div class="availability-note">
+        <strong>Availability Note:</strong>
+        Stephen Speaks is available in Manila from
+        <strong>November 23 through December 13, 2026</strong>,
+        subject to final confirmation.
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- EVENT DETAILS -->
+
+  <div class="field">
+
+    <label>
+      Event / Show Name
+      <span class="required">*</span>
+    </label>
+
+    <input
+      type="text"
+      name="event_name"
+      required
+    >
+
+  </div>
+
+
+  <div class="grid">
+
+    <div class="field">
+
+      <label>
+        Proposed Event Date
+        <span class="required">*</span>
+      </label>
+
+      <input
+        type="date"
+        name="event_date"
+        min="2026-11-12"
+        max="2026-12-13"
+        required
+      >
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Event Start Time
+      </label>
+
+      <input
+        type="time"
+        name="event_start_time"
+      >
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Venue
+        <span class="required">*</span>
+      </label>
+
+      <input
+        type="text"
+        name="venue"
+        required
+      >
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        City / Country
+        <span class="required">*</span>
+      </label>
+
+      <input
+        type="text"
+        name="event_location"
+        required
+      >
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Expected Audience
+      </label>
+
+      <input
+        type="number"
+        name="expected_audience"
+        min="0"
+      >
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Venue Capacity
+      </label>
+
+      <input
+        type="number"
+        name="venue_capacity"
+        min="0"
+      >
+
+    </div>
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Event Type
+      <span class="required">*</span>
+    </label>
+
+    <select
+      name="event_type"
+      required
+    >
+
+      <option value="">
+        Select event type
+      </option>
+
+      <option>Concert</option>
+      <option>Corporate Event</option>
+      <option>Private Event</option>
+      <option>Festival</option>
+      <option>Fundraiser</option>
+      <option>Community Event</option>
+      <option>Other</option>
+
+    </select>
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Brief Description of the Event / Program
+      <span class="required">*</span>
+    </label>
+
+    <textarea
+      name="event_description"
+      required
+    ></textarea>
+
+  </div>
+
+</section>
+
+
+
+<!-- ========================= -->
+<!-- 04 — PRODUCTION -->
+<!-- ========================= -->
+
+<section class="section">
+
+  <div class="section-number">
+    04 — Production &amp; Logistics
+  </div>
+
+  <h2>Production &amp; Logistics</h2>
+
+
+  <div class="field">
+
+    <label>
+      Who will handle event production?
+      <span class="required">*</span>
+    </label>
+
+    <select
+      name="production_handler"
+      required
+    >
+
+      <option value="">
+        Select
+      </option>
+
+      <option>Client / Organizer</option>
+      <option>Local Promoter</option>
+      <option>Production Company</option>
+      <option>Brave Multimedia</option>
+      <option>Not yet determined</option>
+
+    </select>
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Sound System / Technical Production
+    </label>
+
+    <select name="technical_production">
+
+      <option value="">
+        Select
+      </option>
+
+      <option>Provided by Client</option>
+      <option>Provided by Promoter</option>
+      <option>To be discussed</option>
+
+    </select>
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Stage / Venue Production Details
+    </label>
+
+    <textarea name="stage_details"></textarea>
+
+  </div>
+
+
+  <div class="grid">
+
+    <div class="field">
+
+      <label>
+        Accommodation Provided?
+      </label>
+
+      <select name="accommodation">
+
+        <option value="">
+          Select
+        </option>
+
+        <option>Yes</option>
+        <option>No</option>
+        <option>To be arranged</option>
+
+      </select>
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Flights / Transportation Provided?
+      </label>
+
+      <select name="transportation">
+
+        <option value="">
+          Select
+        </option>
+
+        <option>Yes</option>
+        <option>No</option>
+        <option>To be arranged</option>
+
+      </select>
+
+    </div>
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Hospitality / Artist Requirements
+    </label>
+
+    <textarea name="hospitality_requirements"></textarea>
+
+  </div>
+
+</section>
+
+
+
+<!-- ========================= -->
+<!-- 05 — COMMERCIAL -->
+<!-- ========================= -->
+
+<section class="section">
+
+  <div class="section-number">
+    05 — Commercial Information
+  </div>
+
+  <h2>Commercial Information</h2>
+
+
+  <div class="notice">
+
+    Submission of this form does not constitute a quotation,
+    booking confirmation, or final commercial agreement.
+    All commercial terms remain subject to discussion and
+    written approval by Brave Multimedia, Inc.
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Has a budget been allocated for the artist / act?
+      <span class="required">*</span>
+    </label>
+
+    <select
+      name="budget_allocated"
+      required
+    >
+
+      <option value="">
+        Select
+      </option>
+
+      <option>Yes</option>
+      <option>No</option>
+      <option>Still being finalized</option>
+
+    </select>
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Estimated Entertainment Budget
+    </label>
+
+    <select name="budget">
+
+      <option value="">
+        Select
+      </option>
+
+      <option>Below USD 5,000</option>
+      <option>USD 5,000–10,000</option>
+      <option>USD 10,000–20,000</option>
+      <option>USD 20,000–30,000</option>
+      <option>Above USD 30,000</option>
+      <option>Prefer not to disclose</option>
+      <option>To be discussed</option>
+
+    </select>
+
+  </div>
+
+
+  <div class="grid">
+
+    <div class="field">
+
+      <label>
+        Responsible Party for Payment
+        <span class="required">*</span>
+      </label>
+
+      <input
+        type="text"
+        name="payment_responsible"
+        required
+      >
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Preferred Currency
+        <span class="required">*</span>
+      </label>
+
+      <select
+        name="currency"
+        required
+      >
+
+        <option value="">
+          Select
+        </option>
+
+        <option>USD</option>
+        <option>AED</option>
+        <option>PHP</option>
+        <option>Other</option>
+
+      </select>
+
+    </div>
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Additional Commercial Information
+    </label>
+
+    <textarea
+      name="commercial_information"
+    ></textarea>
+
+  </div>
+
+</section>
+
+
+
+<!-- ========================= -->
+<!-- 06 — MEETING -->
+<!-- ========================= -->
+
+<section class="section">
+
+  <div class="section-number">
+    06 — Schedule a Meeting
+  </div>
+
+  <h2>Schedule a Meeting</h2>
+
+  <p class="description">
+    Would you like to discuss your event, booking requirements,
+    or the Right On Time show with our team?
+  </p>
+
+
+  <div class="calendar-booking">
+
+    <h3>
+      Book a Meeting with Brave Multimedia
+    </h3>
+
+    <p>
+      Choose an available date and time through our booking calendar.
+    </p>
+
+
+    <!-- REPLACE WITH YOUR ACTUAL GOOGLE CALENDAR APPOINTMENT LINK -->
+
+    <a
+      href="YOUR_GOOGLE_CALENDAR_BOOKING_LINK"
+      target="_blank"
+      class="calendar-button"
+    >
+      SCHEDULE A MEETING
+    </a>
+
+  </div>
+
+
+  <div class="grid">
+
+    <div class="field">
+
+      <label>
+        Preferred Meeting Date
+      </label>
+
+      <input
+        type="date"
+        name="preferred_meeting_date"
+      >
+
+    </div>
+
+
+    <div class="field">
+
+      <label>
+        Preferred Meeting Time
+      </label>
+
+      <input
+        type="time"
+        name="preferred_meeting_time"
+      >
+
+    </div>
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Time Zone
+    </label>
+
+    <select name="meeting_timezone">
+
+      <option value="">
+        Select
+      </option>
+
+      <option>
+        Philippines — Philippine Standard Time (GMT+8)
+      </option>
+
+      <option>
+        Other
+      </option>
+
+    </select>
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Preferred Meeting Platform
+    </label>
+
+    <select name="meeting_platform">
+
+      <option value="">
+        Select
+      </option>
+
+      <option>Google Meet</option>
+      <option>Zoom</option>
+      <option>WhatsApp Call</option>
+      <option>Phone Call</option>
+      <option>In-Person Meeting</option>
+      <option>Other</option>
+
+    </select>
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Meeting Purpose
+    </label>
+
+    <div class="options">
+
+      <label class="option">
+        <input
+          type="checkbox"
+          name="meeting_purpose[]"
+          value="Booking Inquiry"
+        >
+        Booking Inquiry
+      </label>
+
+      <label class="option">
+        <input
+          type="checkbox"
+          name="meeting_purpose[]"
+          value="Event Discussion"
+        >
+        Event / Show Discussion
+      </label>
+
+      <label class="option">
+        <input
+          type="checkbox"
+          name="meeting_purpose[]"
+          value="Commercial Discussion"
+        >
+        Commercial Discussion
+      </label>
+
+      <label class="option">
+        <input
+          type="checkbox"
+          name="meeting_purpose[]"
+          value="Production"
+        >
+        Production &amp; Technical Requirements
+      </label>
+
+      <label class="option">
+        <input
+          type="checkbox"
+          name="meeting_purpose[]"
+          value="Partnership"
+        >
+        Partnership / Sponsorship
+      </label>
+
+    </div>
+
+  </div>
+
+
+  <div class="field">
+
+    <label>
+      Additional Notes for the Meeting
+    </label>
+
+    <textarea
+      name="meeting_notes"
+    ></textarea>
+
+  </div>
+
+</section>
+
+
+
+<!-- ========================= -->
+<!-- 07 — FINAL CONFIRMATION -->
+<!-- ========================= -->
+
+<section class="section">
+
+  <div class="section-number">
+    07 — Final Confirmation
+  </div>
+
+  <h2>Declaration &amp; Submission</h2>
+
+
+  <p>
+    I certify that the information provided in this booking inquiry
+    is accurate and complete to the best of my knowledge.
+  </p>
+
+
+  <p>
+    I understand that submission of this form is an
+    <strong>inquiry only</strong> and does not constitute a confirmed
+    booking or binding agreement.
+  </p>
+
+
+  <p>
+    I understand that artist availability, performance terms, fees,
+    production requirements, travel arrangements, and other commercial
+    terms are subject to discussion and
+    <strong>final written approval by Brave Multimedia, Inc.</strong>
+  </p>
+
+
+  <br>
+
+
+  <label class="option">
+
+    <input
+      type="checkbox"
+      name="final_declaration"
+      value="Confirmed"
+      required
+    >
+
+    I confirm that I have read and agree to the Booking Inquiry Declaration.
+
+    <span class="required">*</span>
+
+  </label>
+
+
+  <div class="submit-area">
+
+    <button
+      type="submit"
+      class="submit-button"
+    >
+      SUBMIT BOOKING INQUIRY
+    </button>
+
+  </div>
+
+</section>
+
+
+</form>
+
+</div>
+
+
+<footer class="footer">
+
+  © 2026 Brave Multimedia, Inc. All Rights Reserved. | Right On Time — Stephen Speaks<br>
+  Official Representative for Stephen Speaks
+
+</footer>
+
+</body>
+</html>
