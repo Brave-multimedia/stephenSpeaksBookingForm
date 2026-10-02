@@ -387,6 +387,10 @@ textarea:focus {
   font-weight: bold;
 }
 
+.calendar-button[hidden] {
+  display: none;
+}
+
 .calendar-status,
 .form-status {
   margin-top: 16px;
@@ -1671,83 +1675,24 @@ textarea:focus {
   <div class="calendar-booking">
 
     <h3>
-      Book a Meeting with Brave Multimedia
+      Book a Google Meet with Brave Multimedia
     </h3>
 
     <p>
-      Choose an available date and time through our booking calendar.
+      Choose an available date and time. Online appointments use Google Meet.
     </p>
-
-
-    <!-- REPLACE WITH YOUR ACTUAL GOOGLE CALENDAR APPOINTMENT LINK -->
 
     <a
       id="calendar-booking-link"
       target="_blank"
       rel="noopener noreferrer"
       class="calendar-button"
+      hidden
     >
-      SCHEDULE A MEETING
+      SCHEDULE GOOGLE MEET
     </a>
 
     <p id="calendar-booking-status" class="calendar-status" role="status"></p>
-
-  </div>
-
-
-  <div class="grid">
-
-    <div class="field">
-
-      <label>
-        Preferred Meeting Date
-      </label>
-
-      <input
-        type="date"
-        name="preferred_meeting_date"
-      >
-
-    </div>
-
-
-    <div class="field">
-
-      <label>
-        Preferred Meeting Time
-      </label>
-
-      <input
-        type="time"
-        name="preferred_meeting_time"
-      >
-
-    </div>
-
-  </div>
-
-
-  <div class="field">
-
-    <label>
-      Time Zone
-    </label>
-
-    <select name="meeting_timezone">
-
-      <option value="">
-        Select
-      </option>
-
-      <option>
-        Philippines — Philippine Standard Time (GMT+8)
-      </option>
-
-      <option>
-        Other
-      </option>
-
-    </select>
 
   </div>
 
@@ -1764,8 +1709,7 @@ textarea:focus {
         Select
       </option>
 
-      <option>Google Meet</option>
-      <option>Zoom</option>
+      <option value="Google Meet">Online — Google Meet</option>
       <option>WhatsApp Call</option>
       <option>Phone Call</option>
       <option>In-Person Meeting</option>
@@ -1937,12 +1881,29 @@ textarea:focus {
   const bookingConfig = window.BOOKING_CONFIG || {};
   const calendarLink = document.getElementById('calendar-booking-link');
   const calendarStatus = document.getElementById('calendar-booking-status');
-  if (bookingConfig.calendarBookingUrl) {
+  const meetingPlatform = document.querySelector('select[name="meeting_platform"]');
+  const hasCalendarBookingUrl = Boolean(bookingConfig.calendarBookingUrl);
+  if (hasCalendarBookingUrl) {
     calendarLink.href = bookingConfig.calendarBookingUrl;
-  } else {
-    calendarLink.hidden = true;
-    calendarStatus.textContent = 'Meeting calendar setup is in progress. Please contact connect@bravemultimedia.com to arrange a meeting.';
   }
+
+  function updateCalendarBookingOption() {
+    const selectedOnlineMeeting = meetingPlatform.value === 'Google Meet';
+    calendarLink.hidden = !selectedOnlineMeeting || !hasCalendarBookingUrl;
+
+    if (selectedOnlineMeeting && !hasCalendarBookingUrl) {
+      calendarStatus.textContent = 'Meeting calendar setup is in progress. Please contact connect@bravemultimedia.com to arrange a meeting.';
+    } else if (selectedOnlineMeeting) {
+      calendarStatus.textContent = 'Online appointments are booked through Google Calendar and use Google Meet.';
+    } else if (meetingPlatform.value) {
+      calendarStatus.textContent = 'Our team will coordinate your selected meeting platform after reviewing your inquiry.';
+    } else {
+      calendarStatus.textContent = '';
+    }
+  }
+
+  meetingPlatform.addEventListener('change', updateCalendarBookingOption);
+  updateCalendarBookingOption();
 
   const agreement = document.querySelector('input[name="nda_agreement"]');
   const continueButton = document.getElementById('continue-button');
