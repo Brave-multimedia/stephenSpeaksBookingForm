@@ -135,6 +135,13 @@ body {
   margin-bottom: 21px;
 }
 
+.field small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 label {
   display: block;
   font-weight: 600;
@@ -664,13 +671,17 @@ textarea:focus {
 
     <div class="field">
 
-      <label>
+      <label for="contact-full-name">
         Full Name <span class="required">*</span>
       </label>
 
       <input
+        id="contact-full-name"
         type="text"
         name="full_name"
+        autocomplete="name"
+        minlength="2"
+        maxlength="120"
         required
       >
 
@@ -679,13 +690,17 @@ textarea:focus {
 
     <div class="field">
 
-      <label>
+      <label for="contact-position">
         Position / Designation <span class="required">*</span>
       </label>
 
       <input
+        id="contact-position"
         type="text"
         name="position"
+        autocomplete="organization-title"
+        minlength="2"
+        maxlength="120"
         required
       >
 
@@ -694,13 +709,17 @@ textarea:focus {
 
     <div class="field">
 
-      <label>
+      <label for="contact-company">
         Company / Organization <span class="required">*</span>
       </label>
 
       <input
+        id="contact-company"
         type="text"
         name="company"
+        autocomplete="organization"
+        minlength="2"
+        maxlength="160"
         required
       >
 
@@ -709,13 +728,17 @@ textarea:focus {
 
     <div class="field">
 
-      <label>
+      <label for="contact-country">
         Country <span class="required">*</span>
       </label>
 
       <input
+        id="contact-country"
         type="text"
         name="country"
+        autocomplete="country-name"
+        minlength="2"
+        maxlength="100"
         required
       >
 
@@ -724,13 +747,17 @@ textarea:focus {
 
     <div class="field">
 
-      <label>
+      <label for="contact-city">
         City <span class="required">*</span>
       </label>
 
       <input
+        id="contact-city"
         type="text"
         name="city"
+        autocomplete="address-level2"
+        minlength="2"
+        maxlength="100"
         required
       >
 
@@ -739,28 +766,38 @@ textarea:focus {
 
     <div class="field">
 
-      <label>
+      <label for="contact-phone">
         Mobile / WhatsApp Number <span class="required">*</span>
       </label>
 
       <input
+        id="contact-phone"
         type="tel"
         name="phone"
+        autocomplete="tel"
+        inputmode="tel"
+        maxlength="25"
+        aria-describedby="contact-phone-help"
         required
       >
+
+      <small id="contact-phone-help">Include country code if outside the Philippines, e.g. +63 917 123 4567.</small>
 
     </div>
 
 
     <div class="field">
 
-      <label>
+      <label for="contact-email">
         Email Address <span class="required">*</span>
       </label>
 
       <input
+        id="contact-email"
         type="email"
         name="email"
+        autocomplete="email"
+        maxlength="254"
         required
       >
 
@@ -769,14 +806,22 @@ textarea:focus {
 
     <div class="field">
 
-      <label>
+      <label for="contact-website">
         Company Website
       </label>
 
       <input
-        type="url"
+        id="contact-website"
+        type="text"
         name="website"
+        inputmode="url"
+        autocomplete="url"
+        maxlength="2048"
+        placeholder="www.example.com (optional)"
+        aria-describedby="contact-website-help"
       >
+
+      <small id="contact-website-help">Optional. Enter a website such as www.example.com.</small>
 
     </div>
 
@@ -1904,6 +1949,66 @@ textarea:focus {
 
   meetingPlatform.addEventListener('change', updateCalendarBookingOption);
   updateCalendarBookingOption();
+
+  const contactPatterns = {
+    full_name: /^[\p{L}\p{M} .’'-]{2,120}$/u,
+    position: /^[\p{L}\p{M}0-9 .,’'&/()+-]{2,120}$/u,
+    company: /^[\p{L}\p{M}0-9 .,’'&/()+-]{2,160}$/u,
+    country: /^[\p{L}\p{M}0-9 .,’'()/-]{2,100}$/u,
+    city: /^[\p{L}\p{M}0-9 .,’'()/-]{2,100}$/u
+  };
+  const contactMessages = {
+    full_name: 'Enter a valid full name using letters, spaces, apostrophes, periods, or hyphens.',
+    position: 'Enter a valid position or designation.',
+    company: 'Enter a valid company or organization name.',
+    country: 'Enter a valid country.',
+    city: 'Enter a valid city.'
+  };
+  for (const [fieldName, pattern] of Object.entries(contactPatterns)) {
+    const input = inquiryContactField(fieldName);
+    input.addEventListener('input', () => {
+      const value = input.value.trim();
+      const hasLetters = /\p{L}/u.test(value);
+      input.setCustomValidity(!value || !hasLetters || !pattern.test(value) ? contactMessages[fieldName] : '');
+    });
+  }
+
+  const phoneInput = inquiryContactField('phone');
+  phoneInput.addEventListener('input', () => {
+    const value = phoneInput.value.trim();
+    const digits = value.replace(/\D/g, '').length;
+    const valid = /^\+?[0-9][0-9\s().-]{5,23}$/.test(value) && digits >= 7 && digits <= 15;
+    phoneInput.setCustomValidity(valid ? '' : 'Enter a valid phone number with 7 to 15 digits.');
+  });
+
+  const emailInput = inquiryContactField('email');
+  emailInput.addEventListener('input', () => {
+    emailInput.setCustomValidity(emailInput.value.length <= 254 ? '' : 'Email address must be 254 characters or fewer.');
+  });
+
+  const websiteInput = inquiryContactField('website');
+  function normalizeWebsiteInput() {
+    const value = websiteInput.value.trim();
+    if (!value) {
+      websiteInput.setCustomValidity('');
+      return;
+    }
+    const candidate = /^[a-z][a-z\d+.-]*:\/\//i.test(value) ? value : `https://${value}`;
+    try {
+      const url = new URL(candidate);
+      const valid = ['http:', 'https:'].includes(url.protocol) && url.hostname.includes('.') && !url.username && !url.password;
+      websiteInput.setCustomValidity(valid ? '' : 'Enter a valid website, such as www.example.com.');
+      if (valid && document.activeElement !== websiteInput) websiteInput.value = url.toString();
+    } catch {
+      websiteInput.setCustomValidity('Enter a valid website, such as www.example.com.');
+    }
+  }
+  websiteInput.addEventListener('input', normalizeWebsiteInput);
+  websiteInput.addEventListener('blur', normalizeWebsiteInput);
+
+  function inquiryContactField(name) {
+    return document.querySelector(`#booking-inquiry-form [name="${name}"]`);
+  }
 
   const agreement = document.querySelector('input[name="nda_agreement"]');
   const continueButton = document.getElementById('continue-button');
