@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <meta name="robots" content="noindex, nofollow">
+  <title>View or Edit Your Inquiry | Stephen Speaks</title>
+  <style>
+    :root { font-family: Arial, Helvetica, sans-serif; color: #18233a; background: #f3f4f6; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header { background: #08152f; color: #fff; padding: 24px max(20px, calc((100% - 900px) / 2)); }
+    header h1 { margin: 0; font-size: 24px; }
+    main { max-width: 900px; margin: 32px auto; padding: 0 20px; }
+    .card { background: #fff; border-radius: 12px; padding: 28px; box-shadow: 0 5px 20px #08152f10; }
+    h2 { margin-top: 0; }
+    #message { min-height: 1.5em; color: #53627c; }
+    .notice { background: #f5f7fa; border-left: 3px solid #caa451; padding: 12px 14px; margin: 18px 0 24px; }
+    #responses { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    label { display: block; font-weight: 700; font-size: 14px; }
+    input, textarea { display: block; width: 100%; margin-top: 7px; border: 1px solid #cfd6e2; border-radius: 6px; padding: 11px; color: #18233a; font: inherit; }
+    textarea { min-height: 100px; resize: vertical; }
+    .wide { grid-column: 1 / -1; }
+    button { border: 0; border-radius: 6px; background: #caa451; color: #08152f; font: inherit; font-weight: 700; padding: 12px 18px; cursor: pointer; }
+    button:disabled { opacity: .55; cursor: wait; }
+    @media(max-width: 640px) { #responses { grid-template-columns: 1fr; } .wide { grid-column: auto; } .card { padding: 20px; } }
+  </style>
+</head>
+<body>
+  <header><h1>Stephen Speaks Booking Inquiry</h1></header>
+  <main>
+    <section class="card">
+      <h2>View or edit your responses</h2>
+      <p id="message" role="status" aria-live="polite">Loading your inquiry…</p>
+      <div id="editor" hidden>
+        <p class="notice">This private link lets anyone who has it view and edit your inquiry. It expires 30 days after submission.</p>
+        <form id="responses"></form>
+        <p><button id="save" type="submit" form="responses">Save changes</button></p>
+      </div>
+    </section>
+  </main>
+  <script>
+    const message = document.getElementById('message');
+    const editor = document.getElementById('editor');
+    const form = document.getElementById('responses');
+    const token = new URL(location.href).searchParams.get('token') || '';
+    history.replaceState(null, '', location.pathname);
+
+    const labels = {
+      full_name: 'Full name', position: 'Position / designation', company: 'Company / organization',
+      country: 'Country', city: 'City', phone: 'Mobile / WhatsApp number', email: 'Email address',
+      website: 'Company website', organization_type: 'Company / organization type',
+      'communication[]': 'Preferred method of communication', event_name: 'Event / show name',
+      event_date: 'Proposed event date', event_start_time: 'Event start time', venue: 'Venue',
+      event_location: 'Event location', expected_audience: 'Expected audience', venue_capacity: 'Venue capacity',
+      event_type: 'Event type', event_description: 'Event description', production_handler: 'Production handler',
+      technical_production: 'Technical production', stage_details: 'Stage details', accommodation: 'Accommodation',
+      transportation: 'Transportation', hospitality_requirements: 'Hospitality requirements',
+      budget_allocated: 'Budget allocated', budget: 'Budget range', payment_responsible: 'Payment responsible',
+      currency: 'Currency', commercial_information: 'Commercial information',
+      preferred_meeting_date: 'Preferred meeting date', preferred_meeting_time: 'Preferred meeting time',
+      meeting_timezone: 'Meeting time zone', meeting_platform: 'Preferred meeting platform',
+      'meeting_purpose[]': 'Meeting purpose', meeting_notes: 'Additional meeting notes'
+    };
+    const longFields = new Set(['event_description', 'stage_details', 'hospitality_requirements', 'commercial_information', 'meeting_notes']);
+    const dateFields = new Set(['event_date', 'preferred_meeting_date']);
+    const timeFields = new Set(['event_start_time', 'preferred_meeting_time']);
+    let payload = {};
+
+    if (!/^[A-Za-z0-9_-]{43}$/.test(token)) {
+      message.textContent = 'This edit link is invalid. Please use the complete link from your confirmation email.';
+    } else {
+      loadInquiry();
+    }
+
+    async function loadInquiry() {
+      try {
+        const response = await fetch(`/api/edit-inquiry?token=${encodeURIComponent(token)}`, { cache: 'no-store' });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || 'Your inquiry could not be loaded.');
+        payload = result.payload;
+        renderFields(payload);
+        editor.hidden = false;
+        message.textContent = '';
+      } catch (error) {
+        message.textContent = error.message || 'Your inquiry could not be loaded.';
+      }
+    }
+
+    function renderFields(values) {
+      const fields = Object.entries(values).filter(([key]) => labels[key]);
+      for (const [key, value] of fields) {
+        const label = document.createElement('label');
+        label.textContent = labels[key];
+        const control = document.createElement(longFields.has(key) || Array.isArray(value) ? 'textarea' : 'input');
+        control.name = key;
+        if (control instanceof HTMLInputElement) {
+          control.type = dateFields.has(key) ? 'date' : timeFields.has(key) ? 'time' : key === 'email' ? 'email' : key === 'phone' ? 'tel' : 'text';
+        }
+        control.value = Array.isArray(value) ? value.join('\n') : String(value ?? '');
+        label.append(control);
+        if (longFields.has(key) || Array.isArray(value)) label.classList.add('wide');
+        form.append(label);
+      }
+      const declarations = document.createElement('p');
+      declarations.className = 'wide';
+      declarations.textContent = 'Your confidentiality and final declaration confirmations remain recorded with the original submission.';
+      form.append(declarations);
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const save = document.getElementById('save');
+      save.disabled = true;
+      message.textContent = 'Saving your changes…';
+      try {
+        const updated = { ...payload };
+        for (const [key, value] of new FormData(form).entries()) {
+          updated[key] = key.endsWith('[]')
+            ? String(value).split('\n').map((item) => item.trim()).filter(Boolean)
+            : String(value).trim();
+        }
+        const response = await fetch('/api/edit-inquiry', {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(updated)
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(result.error || 'Changes could not be saved.');
+        payload = updated;
+        message.textContent = 'Your changes have been saved.';
+      } catch (error) {
+        message.textContent = error.message || 'Changes could not be saved.';
+      } finally {
+        save.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

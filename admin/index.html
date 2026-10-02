@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Booking Inquiries | Brave Multimedia</title>
+  <style>
+    :root { font-family: Arial, Helvetica, sans-serif; color: #18233a; background: #f4f5f7; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    header { background: #08152f; color: white; padding: 24px max(24px, calc((100% - 1200px) / 2)); }
+    header h1 { margin: 0; font-size: 24px; }
+    main { max-width: 1200px; margin: 32px auto; padding: 0 20px; }
+    .panel { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 5px 20px #08152f10; }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+    button, select, textarea { font: inherit; }
+    button { border: 0; border-radius: 6px; padding: 10px 14px; color: white; background: #10234a; cursor: pointer; }
+    button:disabled { opacity: .55; cursor: wait; }
+    #status-message { min-height: 1.5em; color: #667085; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 760px; }
+    th, td { text-align: left; vertical-align: top; padding: 12px 10px; border-bottom: 1px solid #e5e8ee; }
+    th { color: #667085; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+    td small { display: block; color: #667085; margin-top: 4px; }
+    .edit-cell { min-width: 190px; }
+    .edit-cell select, .edit-cell textarea { width: 100%; border: 1px solid #d9dee8; border-radius: 6px; padding: 9px; margin-bottom: 8px; }
+    .edit-cell textarea { min-height: 64px; resize: vertical; }
+    details { margin-top: 8px; }
+    pre { max-width: 480px; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
+    @media(max-width: 600px) { .panel { padding: 16px; } .toolbar { align-items: flex-start; flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <header><h1>Stephen Speaks Booking Inquiries</h1></header>
+  <main>
+    <p id="status-message" role="status" aria-live="polite">Verifying staff access…</p>
+    <section id="inquiries-panel" class="panel" hidden>
+      <div class="toolbar">
+        <div><h2>Inquiry queue</h2><span id="inquiry-count"></span></div>
+        <button id="refresh-button" type="button">Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Received</th><th>Contact / event</th><th>Proposed date</th><th>Status and notes</th></tr></thead>
+          <tbody id="inquiries-body"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  <script type="module">
+    const message = document.getElementById('status-message');
+    const panel = document.getElementById('inquiries-panel');
+    const rows = document.getElementById('inquiries-body');
+    const statuses = ['New', 'In Review', 'Follow-up', 'Approved', 'Declined'];
+
+    document.getElementById('refresh-button').addEventListener('click', loadInquiries);
+    await loadInquiries();
+
+    async function loadInquiries() {
+      message.textContent = 'Loading inquiries…';
+      try {
+        const response = await fetch('/api/admin/inquiries', { credentials: 'same-origin' });
+        if (response.status === 401 || response.status === 403) {
+          message.textContent = 'Admin access is required. Sign in as admin@bravemultimedia.com.';
+          panel.hidden = true;
+          return;
+        }
+        if (!response.ok) throw new Error();
+        const { inquiries } = await response.json();
+        panel.hidden = false;
+        message.textContent = '';
+        document.getElementById('inquiry-count').textContent = `${inquiries.length} total`;
+        rows.replaceChildren(...inquiries.map(renderRow));
+      } catch {
+        message.textContent = 'Could not load inquiries. Check the D1 binding and Cloudflare Access settings.';
+      }
+    }
+
+    function renderRow(inquiry) {
+      const payload = JSON.parse(inquiry.payload || '{}');
+      const row = document.createElement('tr');
+      const received = document.createElement('td');
+      received.textContent = new Date(inquiry.created_at).toLocaleString();
+      const contact = document.createElement('td');
+      const name = document.createElement('strong');
+      name.textContent = payload.full_name || 'No name';
+      const contactInfo = document.createElement('small');
+      contactInfo.textContent = [payload.company, payload.email, payload.phone].filter(Boolean).join(' · ');
+      const eventName = document.createElement('div');
+      eventName.textContent = payload.event_name || 'No event name';
+      const details = document.createElement('details');
+      const summary = document.createElement('summary');
+      summary.textContent = 'View submitted details';
+      const pre = document.createElement('pre');
+      pre.textContent = JSON.stringify(payload, null, 2);
+      details.append(summary, pre);
+      contact.append(name, contactInfo, eventName, details);
+
+      const proposedDate = document.createElement('td');
+      proposedDate.textContent = payload.event_date || '—';
+      const edit = document.createElement('td');
+      edit.className = 'edit-cell';
+      const status = document.createElement('select');
+      status.setAttribute('aria-label', 'Inquiry status');
+      statuses.forEach((value) => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = value;
+        status.append(option);
+      });
+      status.value = inquiry.status;
+      const notes = document.createElement('textarea');
+      notes.setAttribute('aria-label', 'Internal notes');
+      notes.placeholder = 'Internal notes';
+      notes.value = inquiry.staff_notes || '';
+      const save = document.createElement('button');
+      save.type = 'button';
+      save.textContent = 'Save';
+      save.addEventListener('click', async () => {
+        save.disabled = true;
+        try {
+          const response = await fetch('/api/admin/inquiries', {
+            method: 'PATCH',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: inquiry.id, status: status.value, staff_notes: notes.value })
+          });
+          if (!response.ok) throw new Error();
+          message.textContent = 'Inquiry updated.';
+        } catch {
+          message.textContent = 'Could not save changes. Check your Access session and try again.';
+        } finally {
+          save.disabled = false;
+        }
+      });
+      edit.append(status, notes, save);
+      row.append(received, contact, proposedDate, edit);
+      return row;
+    }
+  </script>
+</body>
+</html>

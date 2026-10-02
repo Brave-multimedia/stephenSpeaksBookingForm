@@ -387,6 +387,18 @@ textarea:focus {
   font-weight: bold;
 }
 
+.calendar-status,
+.form-status {
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.form-status:empty,
+.calendar-status:empty {
+  display: none;
+}
+
 .notice {
   padding: 16px;
   background: #fff8e8;
@@ -417,6 +429,34 @@ textarea:focus {
 
 .submit-button:hover {
   background: var(--navy2);
+}
+
+.step-button {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+  margin: 24px auto 0;
+  padding: 15px 25px;
+  background: var(--navy);
+  color: white;
+  border: 0;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.step-button:disabled {
+  background: #aab2c1;
+  cursor: not-allowed;
+}
+
+.step-button:not(:disabled):hover {
+  background: var(--navy2);
+}
+
+[hidden] {
+  display: none !important;
 }
 
 .footer {
@@ -494,6 +534,7 @@ textarea:focus {
 <div class="container">
 
 <form
+  id="booking-inquiry-form"
   action="https://formsubmit.co/connect@bravemultimedia.com"
   method="POST"
   enctype="multipart/form-data"
@@ -502,6 +543,7 @@ textarea:focus {
 <input type="hidden" name="_subject" value="New Right On Time — Stephen Speaks Booking Inquiry">
 <input type="hidden" name="_template" value="table">
 <input type="hidden" name="_captcha" value="false">
+<input type="text" name="website_address" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px">
 
 
 <!-- ========================= -->
@@ -586,9 +628,15 @@ textarea:focus {
 
   </label>
 
+  <button type="button" class="step-button" id="continue-button" disabled>
+    AGREE &amp; CONTINUE
+  </button>
+
 </section>
 
 
+
+<div id="booking-form-content" hidden>
 
 <!-- ========================= -->
 <!-- 02 — CONTACT -->
@@ -600,7 +648,7 @@ textarea:focus {
     02 — Contact Information
   </div>
 
-  <h2>Contact Information</h2>
+  <h2 tabindex="-1">Contact Information</h2>
 
   <p class="description">
     Please provide the details of the person or organization making
@@ -1634,12 +1682,15 @@ textarea:focus {
     <!-- REPLACE WITH YOUR ACTUAL GOOGLE CALENDAR APPOINTMENT LINK -->
 
     <a
-      href="YOUR_GOOGLE_CALENDAR_BOOKING_LINK"
+      id="calendar-booking-link"
       target="_blank"
+      rel="noopener noreferrer"
       class="calendar-button"
     >
       SCHEDULE A MEETING
     </a>
+
+    <p id="calendar-booking-status" class="calendar-status" role="status"></p>
 
   </div>
 
@@ -1861,11 +1912,14 @@ textarea:focus {
       SUBMIT BOOKING INQUIRY
     </button>
 
+    <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
+
   </div>
 
 </section>
 
 
+</div>
 </form>
 
 </div>
@@ -1877,6 +1931,88 @@ textarea:focus {
   Official Representative for Stephen Speaks
 
 </footer>
+
+<script src="./config.js"></script>
+<script>
+  const bookingConfig = window.BOOKING_CONFIG || {};
+  const calendarLink = document.getElementById('calendar-booking-link');
+  const calendarStatus = document.getElementById('calendar-booking-status');
+  if (bookingConfig.calendarBookingUrl) {
+    calendarLink.href = bookingConfig.calendarBookingUrl;
+  } else {
+    calendarLink.hidden = true;
+    calendarStatus.textContent = 'Meeting calendar setup is in progress. Please contact connect@bravemultimedia.com to arrange a meeting.';
+  }
+
+  const agreement = document.querySelector('input[name="nda_agreement"]');
+  const continueButton = document.getElementById('continue-button');
+  const bookingContent = document.getElementById('booking-form-content');
+
+  agreement.addEventListener('change', () => {
+    continueButton.disabled = !agreement.checked;
+  });
+
+  continueButton.addEventListener('click', () => {
+    if (!agreement.checked) return;
+
+    bookingContent.hidden = false;
+    const firstHeading = document.querySelector('#booking-form-content h2');
+    firstHeading.focus();
+    firstHeading.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  const inquiryForm = document.getElementById('booking-inquiry-form');
+  const formStatus = document.getElementById('form-status');
+  inquiryForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const submitButton = inquiryForm.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+    formStatus.textContent = 'Submitting your inquiry…';
+
+    try {
+      const values = new FormData(inquiryForm);
+      const payload = {};
+      for (const [key, value] of values.entries()) {
+        if (key.startsWith('_')) continue;
+        if (key in payload) payload[key] = [].concat(payload[key], value);
+        else payload[key] = value;
+      }
+
+      const websiteAddress = inquiryForm.querySelector('[name="website_address"]');
+      if (websiteAddress.value) {
+        formStatus.textContent = 'Thank you. Your inquiry has been received.';
+        inquiryForm.reset();
+        return;
+      }
+
+      const response = await fetch('/api/submit-inquiry', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) {
+        if ([400, 403, 429].includes(response.status)) {
+          const details = await response.json().catch(() => ({}));
+          formStatus.textContent = details.error || 'Please review the form and try again in a little while.';
+          submitButton.disabled = false;
+          return;
+        }
+        throw new Error('The inquiry tracker is unavailable.');
+      }
+
+      const result = await response.json().catch(() => ({}));
+      formStatus.textContent = result.confirmationEmailSent
+        ? 'Thank you. Your inquiry was received. We emailed you a confirmation with a private link to view or edit your responses.'
+        : 'Your inquiry was received, but we could not email your private edit link. We are sending your inquiry to the team; please contact connect@bravemultimedia.com for help editing it.';
+      submitButton.textContent = 'SENDING TO THE TEAM…';
+      HTMLFormElement.prototype.submit.call(inquiryForm);
+    } catch (error) {
+      formStatus.textContent = 'The inquiry tracker is temporarily unavailable. We are sending your inquiry by email so the team still receives it.';
+      submitButton.textContent = 'SENDING BY EMAIL…';
+      HTMLFormElement.prototype.submit.call(inquiryForm);
+    }
+  });
+</script>
 
 </body>
 </html>
